@@ -24,10 +24,10 @@ import (
 //   for _, searchResult := range searchResults {
 //     fmt.Println(searchResult.Title)
 //   }
-func (client Client) Search(cp *SearchQueryParameters) ([]SearchResult, error) {
+func (client Client) Search(qp *SearchQueryParameters) ([]SearchResult, error) {
 	var queryParams string
-	if cp != nil {
-		v, _ := query.Values(cp)
+	if qp != nil {
+		v, _ := query.Values(qp)
 		queryParams = v.Encode()
 	}
 	var searchResponse SearchResponse

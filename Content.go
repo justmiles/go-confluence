@@ -41,7 +41,7 @@ type GetContentQueryParameters struct {
 
 // CreateContent creates a new piece of content or publishes an existing draft.
 // https://developer.atlassian.com/cloud/confluence/rest/#api-content-post
-func (client Client) CreateContent(qp *QueryParameters, bp *CreateContentBodyParameters) (Content, error) {
+func (client Client) CreateContent(bp *CreateContentBodyParameters, qp *QueryParameters) (Content, error) {
 	var res Content
 	var queryParams string
 	if qp != nil {
