@@ -38,7 +38,7 @@ func (client Client) Search(cp *SearchQueryParameters) ([]SearchResult, error) {
 	}
 	err = json.Unmarshal(body, &searchResponse)
 	if err != nil {
-		log.Error("Unable to unmarshal API response. Received: '", string(body), "'")
+		log.Error("Unable to unmarshal SearchResponse. Received: '", string(body), "'")
 	}
 
 	if searchResponse.Message != "" {

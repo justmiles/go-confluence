@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -23,12 +24,14 @@ func (client Client) request(method string, apiEndpoint string, queryParams stri
 	if client.Debug {
 		log.SetLevel(log.DebugLevel)
 	}
+
+	var payload io.Reader
+
 	url := client.Endpoint + apiEndpoint
 
 	if queryParams != "" {
 		url = url + "?" + queryParams
 	}
-	var payload *strings.Reader
 	if payloadString != "" {
 		payload = strings.NewReader(payloadString)
 	}
@@ -46,27 +49,40 @@ func (client Client) request(method string, apiEndpoint string, queryParams stri
 
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
-	log.Debug(string(body))
-	log.Debug(res.StatusCode)
+	log.Debugf("Response Status Code: %d", res.StatusCode)
+	log.Debugf("Response Body: '%s'", string(body))
 
 	var apiResponse APIResponse
 
-	err := json.Unmarshal(body, &apiResponse)
-	if err != nil {
-		log.Error("Unable to unmarshal API response. Received: '", string(body), "'")
-		return body, err
+	if string(body) != "" {
+		err := json.Unmarshal(body, &apiResponse)
+		if err != nil {
+			log.Error("Unable to unmarshal API response. Received: '", string(body), "'")
+			return body, err
+		}
+
+		if apiResponse.Message != "" {
+			log.Error(apiResponse.Message)
+			if len(apiResponse.Data.Errors) > 0 {
+				for _, e := range apiResponse.Data.Errors {
+					log.Error("	" + e.Message.Key)
+				}
+			}
+			return body, errors.New(apiResponse.Message)
+		}
 	}
 
-	if apiResponse.Message != "" {
-		log.Error(apiResponse.Message)
-		if len(apiResponse.Data.Errors) > 0 {
-			for _, e := range apiResponse.Data.Errors {
-				log.Error("	" + e.Message.Key)
-			}
-		}
-		return body, errors.New(apiResponse.Message)
-	}
 	return body, nil
+}
+
+// Delete deletes various API types
+func (client Client) Delete(class interface{}) error {
+	switch v := class.(type) {
+	case Content:
+		return client.DeleteContent(class.(Content))
+	default:
+		return fmt.Errorf("unable to delete type %T", v)
+	}
 }
 
 // QueryParameters provides default query parameters for client

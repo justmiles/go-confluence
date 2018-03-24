@@ -21,7 +21,7 @@ func (client Client) GetContent(qp *GetContentQueryParameters) ([]Content, error
 	var contentResponse ContentResponse
 	err = json.Unmarshal(body, &contentResponse)
 	if err != nil {
-		log.Error("Unable to unmarshal API response. Received: '", string(body), "'")
+		log.Error("Unable to unmarshal ContentResponse. Received: '", string(body), "'")
 	}
 	return contentResponse.Results, err
 }
@@ -62,7 +62,7 @@ func (client Client) CreateContent(qp *QueryParameters, bp *CreateContentBodyPar
 	if err != nil {
 		log.Error(body)
 		log.Error(err)
-		log.Error("Unable to unmarshal API response. Received: '", string(body), "'")
+		log.Error("Unable to unmarshal CreateContentResponse. Received: '", string(body), "'")
 	}
 	return res, err
 }
@@ -97,6 +97,11 @@ type CreateContentBodyParameters struct {
 	Type   string `json:"type,omitempty"`
 }
 
+func (client Client) DeleteContent(content Content) error {
+	_, err := client.request("DELETE", "/rest/api/content/"+content.ID, "", "")
+	return err
+}
+
 // ContentResponse represents the data returned from the Confluence API
 type ContentResponse struct {
 	Results []Content `json:"results"`
@@ -104,10 +109,12 @@ type ContentResponse struct {
 
 // Content represents the data returned from the Confluence API
 type Content struct {
+	Client
 	ID                  string `json:"id"`
 	Type                string `json:"type"`
 	Status              string `json:"status"`
 	Title               string `json:"title"`
+	URL                 string `json:"url,omitempty"`
 	MacroRenderedOutput struct {
 	} `json:"macroRenderedOutput,omitempty"`
 	Links struct {
