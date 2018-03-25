@@ -4,16 +4,17 @@ import (
 	"encoding/json"
 	"github.com/google/go-querystring/query"
 	log "github.com/sirupsen/logrus"
+	"strings"
 )
 
 // GetContent Returns all content in a Confluence instance.
 // https://developer.atlassian.com/cloud/confluence/rest/#api-content-get
 func (client Client) GetContent(qp *GetContentQueryParameters) ([]Content, error) {
-	var queryParams string
-	if qp != nil {
-		v, _ := query.Values(qp)
-		queryParams = v.Encode()
-	}
+
+	qp.ExpandString = strings.Join(qp.Expand, ",")
+	v, _ := query.Values(qp)
+	queryParams := v.Encode()
+
 	body, err := client.request("GET", "/rest/api/content", queryParams, "")
 	if err != nil {
 		return nil, err
@@ -29,15 +30,16 @@ func (client Client) GetContent(qp *GetContentQueryParameters) ([]Content, error
 // GetContentQueryParameters query parameters for GetContent
 type GetContentQueryParameters struct {
 	QueryParameters
-	Expand     []string `url:"expand,omitempty"`
-	Limit      int      `url:"limit,omitempty"`
-	Orderby    string   `url:"orderby,omitempty"`
-	PostingDay string   `url:"postingDay,omitempty"`
-	Spacekey   string   `url:"spaceKey,omitempty"`
-	Start      int      `url:"start,omitempty"`
-	Title      string   `url:"title,omitempty"`
-	Trigger    string   `url:"trigger,omitempty"`
-	Type       string   `url:"type,omitempty"`
+	Expand       []string `url:"-"`
+	ExpandString string   `url:"expand,omitempty"`
+	Limit        int      `url:"limit,omitempty"`
+	Orderby      string   `url:"orderby,omitempty"`
+	PostingDay   string   `url:"postingDay,omitempty"`
+	Spacekey     string   `url:"spaceKey,omitempty"`
+	Start        int      `url:"start,omitempty"`
+	Title        string   `url:"title,omitempty"`
+	Trigger      string   `url:"trigger,omitempty"`
+	Type         string   `url:"type,omitempty"`
 }
 
 // CreateContent creates a new piece of content or publishes an existing draft.
@@ -125,6 +127,11 @@ type CreateContentBodyParameters struct {
 	Type   string `json:"type,omitempty"`
 }
 
+// DeleteContent oves a piece of content to the space’s trash or purges it from the trash, depending on the content’s type and status:
+//  - If the content’s type is `page` or `blogpost` and its status is `current`, it will be trashed.
+//  - If the content’s type is `page` or `blogpost` and its status is `trashed`, the content will be purged from the trash and deleted permanently. Note, you must also set the `status` query parameter to `trashed` in your request.
+//  - If the content’s type is `comment` or `attachment`, it will be deleted permanently without being trashed.
+// https://developer.atlassian.com/cloud/confluence/rest/#api-content-id-delete
 func (client Client) DeleteContent(content Content) error {
 	_, err := client.request("DELETE", "/rest/api/content/"+content.ID, "", "")
 	return err
