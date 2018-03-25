@@ -29,14 +29,15 @@ func (client Client) GetContent(qp *GetContentQueryParameters) ([]Content, error
 // GetContentQueryParameters query parameters for GetContent
 type GetContentQueryParameters struct {
 	QueryParameters
-	Limit      int    `url:"limit,omitempty"`
-	Orderby    string `url:"orderby,omitempty"`
-	PostingDay string `url:"postingDay,omitempty"`
-	Spacekey   string `url:"spaceKey,omitempty"`
-	Start      int    `url:"start,omitempty"`
-	Title      string `url:"title,omitempty"`
-	Trigger    string `url:"trigger,omitempty"`
-	Type       string `url:"type,omitempty"`
+	Expand     []string `url:"expand,omitempty"`
+	Limit      int      `url:"limit,omitempty"`
+	Orderby    string   `url:"orderby,omitempty"`
+	PostingDay string   `url:"postingDay,omitempty"`
+	Spacekey   string   `url:"spaceKey,omitempty"`
+	Start      int      `url:"start,omitempty"`
+	Title      string   `url:"title,omitempty"`
+	Trigger    string   `url:"trigger,omitempty"`
+	Type       string   `url:"type,omitempty"`
 }
 
 // CreateContent creates a new piece of content or publishes an existing draft.
@@ -65,6 +66,33 @@ func (client Client) CreateContent(bp *CreateContentBodyParameters, qp *QueryPar
 		log.Error("Unable to unmarshal CreateContentResponse. Received: '", string(body), "'")
 	}
 	return res, err
+}
+
+// UpdateContent updates a piece of content. Use this method to update the title or body of a piece of content, change the status, change the parent page, and more.
+// https://developer.atlassian.com/cloud/confluence/rest/#api-content-id-put
+func (client Client) UpdateContent(content *Content, qp *QueryParameters) (Content, error) {
+	var queryParams string
+	if qp != nil {
+		v, _ := query.Values(qp)
+		queryParams = v.Encode()
+	}
+
+	byteString, err := json.Marshal(content)
+	if err != nil {
+		log.Error("Unable to marshal body. Received: '", err, "'")
+	}
+
+	body, err := client.request("PUT", "/rest/api/content/"+content.ID, queryParams, string(byteString))
+	if err != nil {
+		return *content, err
+	}
+	err = json.Unmarshal(body, &content)
+	if err != nil {
+		log.Error(body)
+		log.Error(err)
+		log.Error("Unable to unmarshal UpdateContent response. Received: '", string(body), "'")
+	}
+	return *content, err
 }
 
 // CreateContentBodyParameters query parameters for CreateContent
@@ -109,14 +137,24 @@ type ContentResponse struct {
 
 // Content represents the data returned from the Confluence API
 type Content struct {
-	Client
-	ID                  string `json:"id"`
-	Type                string `json:"type"`
-	Status              string `json:"status"`
-	Title               string `json:"title"`
-	URL                 string `json:"url,omitempty"`
-	MacroRenderedOutput struct {
-	} `json:"macroRenderedOutput,omitempty"`
+	ID      string `json:"id"`
+	Type    string `json:"type"`
+	Status  string `json:"status"`
+	Title   string `json:"title"`
+	URL     string `json:"url,omitempty"`
+	Version struct {
+		Number int `json:"number,omitempty"`
+	} `json:"version,omitempty"`
+	Body struct {
+		Storage struct {
+			Value           string        `json:"value,omitempty"`
+			Representation  string        `json:"representation,omitempty"`
+			EmbeddedContent []interface{} `json:"embeddedContent,omitempty"`
+			Expandable      struct {
+				Content string `json:"content,omitempty"`
+			} `json:"_expandable,omitempty"`
+		} `json:"storage,omitempty"`
+	} `json:"body,omitempty"`
 	Links struct {
 		Self   string `json:"self"`
 		Tinyui string `json:"tinyui"`
