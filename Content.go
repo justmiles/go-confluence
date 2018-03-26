@@ -99,32 +99,13 @@ func (client Client) UpdateContent(content *Content, qp *QueryParameters) (Conte
 
 // CreateContentBodyParameters query parameters for CreateContent
 type CreateContentBodyParameters struct {
+	Content
 	Ancestors []struct {
 		ID string `json:"id,omitempty"`
 	} `json:"ancestors,omitempty"`
-	Body struct {
-		AnonymousExportView *struct {
-		} `json:"anonymous_export_view,omitempty"`
-		Editor2 *struct {
-		} `json:"editor2,omitempty"`
-		ExportView *struct {
-		} `json:"export_view,omitempty"`
-		Storage *struct {
-		} `json:"storage,omitempty"`
-		StyledView *struct {
-		} `json:"styled_view,omitempty"`
-		View *struct {
-			Representation string `json:"representation,omitempty"`
-			Value          string `json:"value,omitempty"`
-		} `json:"view,omitempty"`
-	} `json:"body,omitempty"`
-	ID    string `json:"id,omitempty"`
 	Space struct {
 		Key string `json:"key,omitempty"`
 	} `json:"space,omitempty"`
-	Status string `json:"status,omitempty"`
-	Title  string `json:"title,omitempty"`
-	Type   string `json:"type,omitempty"`
 }
 
 // DeleteContent oves a piece of content to the space’s trash or purges it from the trash, depending on the content’s type and status:
@@ -144,10 +125,10 @@ type ContentResponse struct {
 
 // Content represents the data returned from the Confluence API
 type Content struct {
-	ID      string `json:"id"`
-	Type    string `json:"type"`
-	Status  string `json:"status"`
-	Title   string `json:"title"`
+	ID      string `json:"id,omitempty"`
+	Type    string `json:"type,omitempty"`
+	Status  string `json:"status,omitempty"`
+	Title   string `json:"title,omitempty"`
 	URL     string `json:"url,omitempty"`
 	Version struct {
 		Number int `json:"number,omitempty"`
@@ -163,9 +144,9 @@ type Content struct {
 		} `json:"storage,omitempty"`
 	} `json:"body,omitempty"`
 	Links struct {
-		Self   string `json:"self"`
-		Tinyui string `json:"tinyui"`
-		Editui string `json:"editui"`
-		Webui  string `json:"webui"`
-	} `json:"_links"`
+		Self   string `json:"self,omitempty"`
+		Tinyui string `json:"tinyui,omitempty"`
+		Editui string `json:"editui,omitempty"`
+		Webui  string `json:"webui,omitempty"`
+	} `json:"_links,omitempty"`
 }
