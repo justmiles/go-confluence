@@ -47,7 +47,7 @@ func (client *Client) request(method string, apiEndpoint string, queryParams str
 	req.Header["Content-Type"] = []string{"application/json"}
 
 	if client.Cookie != "" {
-		req.Header.Add("JSESSIONID", client.Cookie)
+		req.Header.Add("Cookie", fmt.Sprintf("JSESSIONID=%v", client.Cookie))
 	} else {
 		req.SetBasicAuth(client.Username, client.Password)
 	}
