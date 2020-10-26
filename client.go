@@ -16,6 +16,7 @@ import (
 
 // Client for the Confluence API
 type Client struct {
+	Cookie   string
 	Username string
 	Password string
 	Endpoint string
@@ -45,7 +46,11 @@ func (client *Client) request(method string, apiEndpoint string, queryParams str
 	req.Header["X-Atlassian-Token"] = []string{"no-check"}
 	req.Header["Content-Type"] = []string{"application/json"}
 
-	req.SetBasicAuth(client.Username, client.Password)
+	if client.Cookie != "" {
+		req.Header.Add("JSESSIONID", client.Cookie)
+	} else {
+		req.SetBasicAuth(client.Username, client.Password)
+	}
 
 	res, _ := http.DefaultClient.Do(req)
 
