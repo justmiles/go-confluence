@@ -16,11 +16,12 @@ import (
 
 // Client for the Confluence API
 type Client struct {
-	Cookie   string
-	Username string
-	Password string
-	Endpoint string
-	Debug    bool
+	Cookie      string
+	Username    string
+	Password    string
+	AccessToken string
+	Endpoint    string
+	Debug       bool
 }
 
 func (client *Client) request(method string, apiEndpoint string, queryParams string, payloadString string) ([]byte, error) {
@@ -48,6 +49,8 @@ func (client *Client) request(method string, apiEndpoint string, queryParams str
 
 	if client.Cookie != "" {
 		req.Header.Set("Cookie", fmt.Sprintf("JSESSIONID=%v", client.Cookie))
+	} else if client.AccessToken != "" {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %v", client.AccessToken))
 	} else {
 		req.SetBasicAuth(client.Username, client.Password)
 	}
