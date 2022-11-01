@@ -11,6 +11,9 @@ import (
 var (
 	// ErrOverMaxLoop maxLoopを超えてもファイルが存在し続けた場合のエラー
 	ErrOverMaxLoop = errors.New("maxLoopを超えてもファイルが存在し続けた場合のエラー")
+
+	// ExtAll すべてを検索する場合の拡張子
+	ExtAll = "*"
 )
 
 // IsExist ファイルが存在するかチェック
@@ -52,4 +55,35 @@ func GetNonExistFileName(path string, maxLoop int) (string, error) {
 		return filename, nil
 	}
 	return "", ErrOverMaxLoop
+}
+
+// GetFiles targetDirectoryからextの拡張子を持ったファイルを取得する
+// extが"*"の場合はすべての拡張子
+// topDirectoryOnlyがtrueの場合はtopのみ
+func GetFiles(targetDirectory, targetExt string, topDirectoryOnly bool) []string {
+	var files []string
+	filepath.Walk(
+		targetDirectory,
+		func(path string, info os.FileInfo, err error) error {
+			if info.IsDir() {
+				if topDirectoryOnly {
+					if targetDirectory == path {
+						return nil
+					}
+					return filepath.SkipDir
+				}
+			}
+
+			if targetExt != ExtAll {
+				ext := filepath.Ext(info.Name())
+				if ext != targetExt {
+					return nil
+				}
+			}
+
+			files = append(files, path)
+			return nil
+		},
+	)
+	return files
 }

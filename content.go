@@ -1,6 +1,7 @@
 package confluence
 
 import (
+	"bytes"
 	"encoding/json"
 	"strings"
 
@@ -20,7 +21,7 @@ func (client *Client) GetContent(qp *GetContentQueryParameters) ([]Content, erro
 	v, _ := query.Values(qp)
 	queryParams := v.Encode()
 
-	body, err := client.request("GET", "/rest/api/content", queryParams, "")
+	body, err := client.request("GET", "/rest/api/content", queryParams, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -57,12 +58,12 @@ func (client *Client) CreateContent(bp *CreateContentBodyParameters, qp *QueryPa
 		queryParams = v.Encode()
 	}
 
-	byteString, err := json.Marshal(bp)
+	contentBytes, err := json.Marshal(bp)
 	if err != nil {
 		log.Error("Unable to marshal body. Received: '", err, "'")
 	}
 
-	body, err := client.request("POST", "/rest/api/content", queryParams, string(byteString))
+	body, err := client.request("POST", "/rest/api/content", queryParams, bytes.NewReader(contentBytes))
 	if err != nil {
 		return res, err
 	}
@@ -84,12 +85,12 @@ func (client *Client) UpdateContent(content *Content, qp *QueryParameters) (Cont
 		queryParams = v.Encode()
 	}
 
-	byteString, err := json.Marshal(content)
+	contentBytes, err := json.Marshal(content)
 	if err != nil {
 		log.Error("Unable to marshal body. Received: '", err, "'")
 	}
 
-	body, err := client.request("PUT", "/rest/api/content/"+content.ID, queryParams, string(byteString))
+	body, err := client.request("PUT", "/rest/api/content/"+content.ID, queryParams, bytes.NewReader(contentBytes))
 	if err != nil {
 		return *content, err
 	}
@@ -123,12 +124,12 @@ func (client *Client) AddLabels(contentID string, labels []string, prefix LabelP
 		labelsContent = append(labelsContent, Label{string(prefix), l})
 	}
 
-	jsonbody, err := json.Marshal(labelsContent)
+	labelsContentBytes, err := json.Marshal(labelsContent)
 	if err != nil {
 		return err
 	}
 	labelEndpoint := client.labelEndpoint(contentID)
-	_, err = client.request("POST", labelEndpoint, "", string(jsonbody))
+	_, err = client.request("POST", labelEndpoint, "", bytes.NewReader(labelsContentBytes))
 	if err != nil {
 		return err
 	}
@@ -141,12 +142,13 @@ type CreateContentBodyParameters struct {
 }
 
 // DeleteContent oves a piece of content to the space’s trash or purges it from the trash, depending on the content’s type and status:
-//  - If the content’s type is `page` or `blogpost` and its status is `current`, it will be trashed.
-//  - If the content’s type is `page` or `blogpost` and its status is `trashed`, the content will be purged from the trash and deleted permanently. Note, you must also set the `status` query parameter to `trashed` in your request.
-//  - If the content’s type is `comment` or `attachment`, it will be deleted permanently without being trashed.
+//   - If the content’s type is `page` or `blogpost` and its status is `current`, it will be trashed.
+//   - If the content’s type is `page` or `blogpost` and its status is `trashed`, the content will be purged from the trash and deleted permanently. Note, you must also set the `status` query parameter to `trashed` in your request.
+//   - If the content’s type is `comment` or `attachment`, it will be deleted permanently without being trashed.
+//
 // https://developer.atlassian.com/cloud/confluence/rest/#api-content-id-delete
 func (client *Client) DeleteContent(content Content) error {
-	_, err := client.request("DELETE", "/rest/api/content/"+content.ID, "", "")
+	_, err := client.request("DELETE", "/rest/api/content/"+content.ID, "", nil)
 	return err
 }
 

@@ -163,7 +163,7 @@ func (client *Client) attachmentDataEndpoint(contentID, attachmentID string) str
 func (client *Client) DeleteAttachment(contentID string, attachmentID string) error {
 	endpoint := client.attachmentEndpoint(contentID, attachmentID)
 
-	_, err := client.request("DELETE", endpoint, "", "")
+	_, err := client.request("DELETE", endpoint, "", nil)
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func (client *Client) DeleteAttachment(contentID string, attachmentID string) er
 func (client *Client) GetAttachment(contentID, attachmentID string) (*Attachment, error) {
 	endpoint := client.attachmentEndpoint(contentID, attachmentID)
 
-	res, err := client.request("GET", endpoint, "", "")
+	res, err := client.request("GET", endpoint, "", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (client *Client) GetAttachmentByFilename(contentID, filename string) (*Atta
 	data.Set("filename", filename)
 	query := data.Encode()
 
-	res, err := client.request("GET", endpoint, query, "")
+	res, err := client.request("GET", endpoint, query, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +274,7 @@ func (client *Client) UpdateAttachment(contentID, attachmentID, path string, min
 		req.Header.Set("Content-Type", writer.FormDataContentType())
 	}
 
-	res, err := client.requestWithFunc("POST", endpoint, "", body, preRequest)
+	res, err := client.request("POST", endpoint, "", body, preRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -338,7 +338,7 @@ func (client *Client) AddAttachment(contentID, path string) (*Attachment, error)
 		req.Header.Set("Content-Type", writer.FormDataContentType())
 	}
 
-	res, err := client.requestWithFunc("POST", endpoint, "", body, preRequest)
+	res, err := client.request("POST", endpoint, "", body, preRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -384,7 +384,7 @@ func (client *Client) FetchAttachmentMetaData(contentID string) (*AttachmentResu
 		http.MethodGet,
 		endpoint,
 		"",
-		"",
+		nil,
 	)
 	if err != nil {
 		return nil, err
@@ -434,7 +434,7 @@ func (client *Client) DownloadFromURL(url, outputFilepath string) error {
 		http.MethodGet,
 		url,
 		"",
-		"",
+		nil,
 	)
 	if err != nil {
 		return err

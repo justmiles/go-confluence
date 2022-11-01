@@ -13,18 +13,19 @@ import (
 // https://developer.atlassian.com/cloud/confluence/rest/#api-search-get
 //
 // Example:
-//   searchResults, err := client.Search(&confluence.SearchQueryParameters{
-//     CQL:   "space = PE",
-//     Limit: 1,
-//   })
 //
-//   if err != nil {
-//     errorAndExit(err)
-//   }
+//	searchResults, err := client.Search(&confluence.SearchQueryParameters{
+//	  CQL:   "space = PE",
+//	  Limit: 1,
+//	})
 //
-//   for _, searchResult := range searchResults {
-//     fmt.Println(searchResult.Title)
-//   }
+//	if err != nil {
+//	  errorAndExit(err)
+//	}
+//
+//	for _, searchResult := range searchResults {
+//	  fmt.Println(searchResult.Title)
+//	}
 func (client *Client) Search(qp *SearchQueryParameters) ([]SearchResult, error) {
 	var queryParams string
 	if qp != nil {
@@ -33,7 +34,7 @@ func (client *Client) Search(qp *SearchQueryParameters) ([]SearchResult, error) 
 	}
 	var searchResponse SearchResponse
 
-	body, err := client.request("GET", "/rest/api/search", queryParams, "")
+	body, err := client.request("GET", "/rest/api/search", queryParams, nil)
 	if err != nil {
 		return searchResponse.Results, err
 	}
